@@ -1,11 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Title of the Web Page
 st.title("Boston Housing Price Prediction")
@@ -16,9 +13,8 @@ st.write("""
     property-tax rate, etc. It uses a linear regression model trained on the Boston Housing dataset.
 """)
 
-# Load and Show Data
+# Load Dataset (but don't show it)
 df = pd.read_csv("BostonHousing.csv")
-st.write("### Dataset Overview", df.head())
 
 # Data Preprocessing
 X = df.drop(["medv"], axis=1)  # Features (Independent variables)
@@ -29,18 +25,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # Train Linear Regression Model
 house_predictor = LinearRegression()
-house_predictor.fit(X_train, y_train)
-y_pred = house_predictor.predict(X_test)
 
-# Evaluation Metrics
-mae = mean_absolute_error(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-
-st.write(f"### Model Performance")
-st.write(f"Mean Absolute Error: {mae}")
-st.write(f"Mean Squared Error: {mse}")
-st.write(f"Root Mean Squared Error: {rmse}")
+# Wrap model fitting and prediction in try-except block to handle errors gracefully
+try:
+    house_predictor.fit(X_train, y_train)
+except Exception as e:
+    st.error(f"An error occurred during model training: {str(e)}")
 
 # Allow User to Input Data for Prediction
 st.write("### Input Features to Predict House Price")
@@ -65,7 +55,10 @@ user_input = np.array([CRIM, ZN, INDUS, CHAS, NOX, RM, AGE, DIS, RAD, TAX, PTRAT
 
 # Prediction Button to trigger the price prediction
 if st.button('Predict Price'):
-    predicted_price = house_predictor.predict(user_input)
+    try:
+        predicted_price = house_predictor.predict(user_input)
 
-    # Display the prediction
-    st.write(f"### Predicted Home Price: ${predicted_price[0] * 1000:.2f}")
+        # Display the prediction
+        st.write(f"### Predicted Home Price: ${predicted_price[0] * 1000:.2f}")
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {str(e)}")
